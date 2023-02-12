@@ -1,5 +1,5 @@
-# CBOEDashboard
-A Streamlit Dashboard for CBOE Options
+# CBOE Options Dashboard
+A Streamlit app for delayed CBOE options data.
 
 Run in the cloud: https://deeleeramone-cboedashboard-cboe-a2lpit.streamlit.app/
 
