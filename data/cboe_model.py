@@ -998,7 +998,7 @@ class Ticker(object):
             self.symbol = symbol.upper()
             self.details, self.expirations = get_ticker_info(self.symbol)
             symbol_ = self.details.columns[0]
-            ticker.details = self.details[symbol_]
+            self.details = self.details[symbol_]
             stock_price = self.details["Current Price"]
             self.stock_price = stock_price
             self.iv = get_ticker_iv(self.symbol)
@@ -1018,15 +1018,17 @@ class Ticker(object):
                 ["Expiration", "Strike", "IV"]
             ]
             atm_calls = atm_calls.query(
-                "@self.stock_price <= Strike <= @ticker.stock_price*1.05"
+                "@self.stock_price*0.995 <= Strike <= @self.stock_price*1.05"
             )
-            atm_calls = atm_calls.groupby("Expiration").min("Strike")
+            atm_calls = atm_calls.groupby("Expiration")[["Strike", "IV"]]
+            atm_calls = atm_calls.apply(lambda x: x.loc[x["Strike"].idxmin()])
             atm_calls = atm_calls.rename(columns={"Strike": "Call Strike", "IV": "Call IV"})
             otm_puts: DataFrame = self.puts.reset_index()[["Expiration", "Strike", "IV"]]
             otm_puts = otm_puts.query(
-                "@self.stock_price*0.95 <= Strike <= @ticker.stock_price"
+                "@self.stock_price*0.94 <= Strike <= @self.stock_price"
             )
-            otm_puts = otm_puts.groupby("Expiration").min("Strike")
+            otm_puts = otm_puts.groupby("Expiration")[["Strike", "IV"]]
+            otm_puts = otm_puts.apply(lambda x: x.loc[x["Strike"].idxmin()])
             otm_puts = otm_puts.rename(columns={"Strike": "Put Strike", "IV": "Put IV"})
             iv_skew: DataFrame = atm_calls.join(otm_puts)
             iv_skew["IV Skew"] = iv_skew["Put IV"] - iv_skew["Call IV"]
