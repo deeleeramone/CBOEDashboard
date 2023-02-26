@@ -34,7 +34,6 @@ if symbol == '':
     st.write('Please enter a symbol')
 
 else:
-    @st.cache_data
     def get_ticker(symbol) -> object:
         ticker: object = cboe.ticker.get_ticker(symbol)
         
